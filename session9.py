@@ -5,6 +5,7 @@ from collections import defaultdict
 from faker import Faker
 from collections import Counter
 from time import perf_counter
+import random
 fake = Faker()
 
 random_profiles = [fake.profile() for _ in range(10_00)]
@@ -125,3 +126,70 @@ def profile_without_tuples(random_profiles: list) -> tuple:
 
 #3
 
+# namedtuple to describes a single company in stock market
+Stock = namedtuple('Stock','name symbol open high close')
+Stock_with_weight = namedtuple('Stock_with_weight', Stock._fields + ('weight',))
+
+def init_3() -> tuple :
+    ''' Returns a list of 1000 random companies and it\'s stock details for one day. '''
+
+
+    #initializing stock market with 1000 companies
+    stock_market = list()
+    for _ in range(10_000):
+        name = fake.company()
+        symbol = name[0:5]
+        open = random.randint(10_000,11_000)
+        high = open* random.uniform(1,1.5)
+        close = random.uniform(open*0.8,high)
+        stock_market.append(Stock(name,symbol,open,high,close))
+    return stock_market
+
+
+def extend_weight(stock_market:list) -> tuple:
+    ''' Extends Stock namedtuple with relative weight.\n
+        Returns sum total of open and the extended stock martket
+    '''
+
+    # Adding weights to comapnies of the stock_market. Let's call our market as BSE
+    sum_open = sum([company.open for company in stock_market ])
+    bse = list()
+    for company in stock_market:
+        weight = company.open/sum_open
+        temp = Stock_with_weight(*company,weight)
+        print(temp)
+        bse.append(temp)
+
+    return sum_open, bse
+    
+    
+def market_close(sum_open: int,bse: list) -> float:
+
+    ''' 
+        Calculate the no. of points by which market closes based on individual stocks.
+    '''
+
+    #Validations
+    for company in bse:
+        if company.close > company.high:
+            raise ValueError('High lesser than close')
+
+
+    delta = 0.0
+    for company in bse:
+        change = company.close - company.open
+        delta += change * company.weight
+
+
+    if delta > 0:
+        print(f'Market opened at {sum_open} and went up by whopping {delta} points. 21 din me paisa double - a scheme for rich by Laxmi Chit fund!!!! ')
+    else:
+        print(f'Market opened at {sum_open} and fell down by whopping {abs(delta)} points. Golmaal hai bhai sab golmaal hai!!!!')
+
+    return delta
+
+
+def wrapper_3():
+    stock_market = init_3()
+    sum_open, bse = extend_weight(stock_market)
+    _ = market_close(sum_open,bse)
